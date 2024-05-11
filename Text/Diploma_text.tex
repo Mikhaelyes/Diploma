@@ -52,19 +52,132 @@
 Рассмотрим граф как статитеческий на последний момент времени, рассчитаем для каждого его узла PageRank и проведём исследование расспределения. Исследование состоит в оценивании индекса экстримального значения $\gamma$ разными методами и изучении хвоста распределения.
 
 
+\section{Описательные характеристики}
 
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/PR_hist.png}
+\captionof{figure}{Распределение PageRank}
+\end{center}
+
+
+\subsection{Гистограмма распределения}
+
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/Rn.png}
+\captionof{figure}{Зависимость отношшения максимума к сумме элементов для различных значений хвостового индекса}
+\end{center}
+
+По итогам исследования можно сказать, 
+Для $p \in \lbrace 0.25, 0.75, 1 \rbrace $ $R_{n}(p)$ по всей видимости стремиться к нулю при возрастании n.
+Для $p \in \lbrace 2, 3, 4, 5, 10, 15, 30 \rbrace $ $ Rn(p)$ по всей видимости стремиться к положительной константе при возрастании n.
+
+Вывод: $E|X|^{p} < \infty$ для $p \leqslant 1$ только, $E|X|^{p} = \infty$ для $p > 1$.  Значит распределение имеет единственный момент.
+
+
+\subsection{Оценка распределения}
+
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/QQ.png}
+\captionof{figure}{QQ-plot для нормального распределения}
+\end{center}
+Как видно нормальное распределение не подходит для выборки.
+
+Как видно логнормальное распределение относительно подходит для выборки.
+
+Как видно экспоненциальное распределение не подходит для выборки.
+
+Как видно Парето обобщённое распределение не подходит для выборки.
+
+Вывод: логнормальное распределение лучше всего описывает распределение PageRank графа.
+
+
+\subsection{Оценки индекса экстримального значения}
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/Hill_estimator}
+\captionof{figure}{Hills estimator plot}
+\end{center}
+
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/Ratio_estimator}
+\captionof{figure}{Ratio estimator plot}
+\end{center}
+
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/Moment_estimator}
+\captionof{figure}{Moment estimator plot}
+\end{center}
+
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/UH_estimator}
+\captionof{figure}{UH estimator plot}
+\end{center}
+
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/Pickands_estimator}
+\captionof{figure}{Pickands estimator plot}
+\end{center}
+
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/Mixed_moment_estimator}
+\captionof{figure}{Mixed estimator plot}
+\end{center}
+
+Из графиков видно, что оценки Hill, Ratio и UH на предоставленных данных работают плохо. Тогда как оценки Moment, Pickands и Mixed Moment имеют интервалы стабильности. При взятии среднего по этим оценкам по интервалу стабильности получаются значения 0.42, 0.34 и 0.21 соответственно. Для дальнейших вычислений хвостового индекса будем использовать Mixed Moment estimator в связи с относительной стабильностью оценки на всей последовательности.
+
+Вывод: по всей видимости хвостовой индекс можно положить примерно равным $\gamma \thickapprox 0.21$.    
 
 
 
 \section{Разбиение на сообщества}
+Библиотека NetworkX позволяет разделить граф на сообщества посредствам Louvain Community Detection Algorithm. Выявлено 13 сообществ разного размера.
 
 
+
+\begin{table}[h!]
+\begin{tabular}{|l|l|lll}
+\cline{1-2}
+Номер сообщества & Количество вершин &  &  &  \\ \cline{1-2}
+0                & 125               &  &  &  \\ \cline{1-2}
+1                & 2                 &  &  &  \\ \cline{1-2}
+2                & 236               &  &  &  \\ \cline{1-2}
+3                & 367               &  &  &  \\ \cline{1-2}
+4                & 122               &  &  &  \\ \cline{1-2}
+5                & 41                &  &  &  \\ \cline{1-2}
+6                & 331               &  &  &  \\ \cline{1-2}
+7                & 248               &  &  &  \\ \cline{1-2}
+8                & 29                &  &  &  \\ \cline{1-2}
+9                & 287               &  &  &  \\ \cline{1-2}
+10               & 107               &  &  &  \\ \cline{1-2}
+11               & 2                 &  &  &  \\ \cline{1-2}
+12               & 2                 &  &  &  \\ \cline{1-2}
+\end{tabular}
+\end{table}
 
 
 
 
 \section{Тестирование стационарности}
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/tail_time}
+\captionof{figure}{Hills estimator plot}
+\end{center}
 
+
+\begin{center}
+\centering 
+\includegraphics[scale=0.6]{Imagines/num_nodes}
+\captionof{figure}{Hills estimator plot}
+\end{center}
 
 
 
