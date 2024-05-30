@@ -1,3 +1,17 @@
+import random
+import networkx as nx
+import pandas as pd
+import numpy as np
+
+
+"""Модуль обработки предназначен для проведения исследования последовательностей и графов.
+Состоит из следующих частей:
+    1) Модуль эстиматоров.
+    2) Модуль оценки стационарности последовательностей.
+    3) Модуль оценки стационарности графов.
+"""
+
+
 """Модуль эстиматоров включает в себя:
     -Hill's estimator
     -Ratio estimator
@@ -6,20 +20,20 @@
     -Pickands estimator
     -Mixed moment
 
-    А так же сторонние функции удобного вывода графиков:
-    -plot_est    
-    """
+    А так же функции оценки плато:
+    -eye_ball
+"""
 
 
-import random
-import networkx as nx
-import pandas as pd
-import numpy as np
-
-
-#Hills estimator
 def hill(x):
-    """123"""
+    """
+    Функция позволяет сделать оценку Хилла индекса экстримальной величины.
+    Input:
+        x - последовательность.
+    Output:
+        gammah - оценка.
+    """
+    
     maxk = len(x) - 1
     gammah = np.zeros(maxk)
     xord = np.sort(x, axis=0)
@@ -28,9 +42,15 @@ def hill(x):
     return gammah
 
 
-#Ratio estimator
 def ratio_estimator(x):
-    """123"""
+    """
+    Функция позволяет сделать оценку Ratio индекса экстримальной величины.
+    Input:
+        x - последовательность.
+    Output:
+        rest - оценка.
+    """
+    
     xord = np.sort(x, axis=0)
     level = np.linspace(xord[0], xord[-1], 100)
     rest = np.zeros(len(level))
@@ -46,9 +66,15 @@ def ratio_estimator(x):
     return rest
 
 
-#Moment estimator
 def moment_estimator(x):
-    """123"""
+    """
+    Функция позволяет сделать оценку moment_estimator индекса экстримальной величины.
+    Input:
+        x - последовательность.
+    Output:
+        gammam - оценка.
+    """
+    
     maxk = len(x) - 1
     xord = np.sort(x, axis=0)
     gammam = np.zeros(maxk)
@@ -62,9 +88,15 @@ def moment_estimator(x):
     return gammam
 
 
-#UH estimator
 def uh_estimator(x):
-    """123"""
+    """
+    Функция позволяет сделать оценку uh_estimator индекса экстримальной величины.
+    Input:
+        x - последовательность.
+    Output:
+        gammauh - оценка.
+    """
+    
     maxk = len(x) - 1
     gammauh = np.zeros(maxk)
     xord = np.sort(x, axis=0)
@@ -78,9 +110,15 @@ def uh_estimator(x):
     return gammauh
 
 
-#Pickands's estimator
 def pickands_estimator(x):
-    """123"""
+    """
+    Функция позволяет сделать оценку pickands_estimator индекса экстримальной величины.
+    Input:
+        x - последовательность.
+    Output:
+        gammap - оценка.
+    """
+    
     maxk = len(x) - 1
     xord = np.sort(x, axis=0)
     gammap = np.zeros(round(maxk/4))
@@ -91,7 +129,14 @@ def pickands_estimator(x):
 
 
 def mixed_moment(x):
-    """123"""
+    """
+    Функция позволяет сделать оценку mixed_moment индекса экстримальной величины.
+    Input:
+        x - последовательность.
+    Output:
+        num_gamma - оценка.
+    """
+    
     maxk = len(x) - 1
     num_gamma = np.zeros(maxk)
     gammamm_k = 0
@@ -109,7 +154,15 @@ def mixed_moment(x):
 
 
 def eye_ball(x1):
-    """123"""
+    """
+    Функция позволяет найти наибольшее плато в последовательности и вывести его значение.
+    Input:
+        x - последовательность.
+    Output:
+        x1[k_find] - значение плато по оси OY.
+        k_find - намер первого элемента входящего в плато.
+    """
+    
     x = x1[:int(len(x1)/2)]
     window = int(len(x) / 20)
     diff_x = np.diff(x)
@@ -120,17 +173,51 @@ def eye_ball(x1):
     return x1[k_find], k_find
 
 
-"""Модуль эстиматоров включает в себя:
-    -Hill's estimator
-    -Ratio estimator
-    -Moment estimator
-    -UH estimator
-    -Pickands estimator
-    -Mixed moment
+"""
+Модуль оценки стационарности последовательностей включает в себя:
+    -test_tail_index
+    -phillips_loretan
+"""
 
-    А так же сторонние функции удобного вывода графиков:
-    -plot_est    
+
+def test_tail_index(x):
     """
+    Функция позволяет найти глобальный оценщик.
+    """
+    global_est = pd.Series()
+    list_tail_ind = pd.Series()
+    list_step = pd.Series()
+    n = len(x)
+    h = 300 / n
+    step = int(n*h)
+    num_blocks = int(1 / h)
+    for i in range(num_blocks):
+        tail_data = mixed_moment(x[i*step:(i+1)*step])
+#        list_tail_ind[i] = Tail_data[50:-50].mean()
+        list_tail_ind[i], tail_num = eye_ball(tail_data)
+
+    for i in range(num_blocks):
+        global_est[i] = np.sum(list_tail_ind[:i])
+        list_step[i] = i/(num_blocks-1)
+    return list_step, global_est
+
+
+def phillips_loretan(x1, x2):
+    """
+    Функция теста phillips_loretan для двух последовательностей
+    """
+    tail_ind_1, tail_num_1 = eye_ball(mixed_moment(x1))
+    tail_ind_2, tail_num_2 = eye_ball(mixed_moment(x2))
+    s = (tail_num_1*(tail_ind_2)**2 * (tail_ind_1/tail_ind_2 - 1)**2)/ \
+    (tail_ind_1**2 + (tail_num_1/tail_num_2)*tail_ind_2**2)
+    return s
+
+
+"""
+Модуль оценки стационарности графов включает в себя:
+    -teil_index_by_sec
+    -value_index_time
+"""
 
 
 def teil_index_by_sec(df_pr):
@@ -181,32 +268,3 @@ def value_index_time(data_vt, comm_list, time):
         list_time_std.append(teil_index_by_sec(df_pr_t_1)[1])
         num_nodes.append((df_pr_t_1.size)/2)
     return list_time_mean, list_time_std, num_nodes
-
-
-def test_tail_index(x):
-    """123"""
-    global_est = pd.Series()
-    list_tail_ind = pd.Series()
-    list_step = pd.Series()
-    n = len(x)
-    h = 300 / n
-    step = int(n*h)
-    num_blocks = int(1 / h)
-    for i in range(num_blocks):
-        tail_data = mixed_moment(x[i*step:(i+1)*step])
-#        list_tail_ind[i] = Tail_data[50:-50].mean()
-        list_tail_ind[i], tail_num = eye_ball(tail_data)
-
-    for i in range(num_blocks):
-        global_est[i] = np.sum(list_tail_ind[:i])
-        list_step[i] = i/(num_blocks-1)
-    return list_step, global_est
-
-
-def phillips_loretan(x1, x2):
-    """123"""
-    tail_ind_1, tail_num_1 = eye_ball(mixed_moment(x1))
-    tail_ind_2, tail_num_2 = eye_ball(mixed_moment(x2))
-    s = (tail_num_1*(tail_ind_2)**2 * (tail_ind_1/tail_ind_2 - 1)**2)/ \
-    (tail_ind_1**2 + (tail_num_1/tail_num_2)*tail_ind_2**2)
-    return s
