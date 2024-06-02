@@ -1,10 +1,5 @@
-import random
-import networkx as nx
-import pandas as pd
-import numpy as np
-
-
-"""Модуль обработки предназначен для проведения исследования последовательностей и графов.
+"""
+Модуль обработки предназначен для проведения исследования последовательностей и графов.
 Состоит из следующих частей:
     1) Модуль эстиматоров.
     2) Модуль оценки стационарности последовательностей.
@@ -12,7 +7,15 @@ import numpy as np
 """
 
 
-"""Модуль эстиматоров включает в себя:
+import random
+import networkx as nx
+import pandas as pd
+import numpy as np
+from scipy import stats
+
+
+"""
+Модуль эстиматоров включает в себя:
     -Hill's estimator
     -Ratio estimator
     -Moment estimator
@@ -20,8 +23,9 @@ import numpy as np
     -Pickands estimator
     -Mixed moment
 
-    А так же функции оценки плато:
-    -eye_ball
+    А так же функции:
+    -eye_ball - оценки плато.
+    -bootstrap_est - рассчёта доверительного интервала для эстиматоров.
 """
 
 
@@ -33,7 +37,7 @@ def hill(x):
     Output:
         gammah - оценка.
     """
-    
+
     maxk = len(x) - 1
     gammah = np.zeros(maxk)
     xord = np.sort(x, axis=0)
@@ -50,7 +54,7 @@ def ratio_estimator(x):
     Output:
         rest - оценка.
     """
-    
+
     xord = np.sort(x, axis=0)
     level = np.linspace(xord[0], xord[-1], 100)
     rest = np.zeros(len(level))
@@ -59,7 +63,7 @@ def ratio_estimator(x):
         sumup = 0
         sumdn = 0
         for i in x:
-            if (i > level[n]):
+            if(i > level[n]):
                 sumup += np.log(i / level[n])
                 sumdn += 1
         rest[n] = sumup / sumdn
@@ -74,7 +78,7 @@ def moment_estimator(x):
     Output:
         gammam - оценка.
     """
-    
+
     maxk = len(x) - 1
     xord = np.sort(x, axis=0)
     gammam = np.zeros(maxk)
@@ -96,7 +100,7 @@ def uh_estimator(x):
     Output:
         gammauh - оценка.
     """
-    
+
     maxk = len(x) - 1
     gammauh = np.zeros(maxk)
     xord = np.sort(x, axis=0)
@@ -118,7 +122,7 @@ def pickands_estimator(x):
     Output:
         gammap - оценка.
     """
-    
+
     maxk = len(x) - 1
     xord = np.sort(x, axis=0)
     gammap = np.zeros(round(maxk/4))
@@ -136,7 +140,7 @@ def mixed_moment(x):
     Output:
         num_gamma - оценка.
     """
-    
+
     maxk = len(x) - 1
     num_gamma = np.zeros(maxk)
     gammamm_k = 0
@@ -162,7 +166,7 @@ def eye_ball(x1):
         x1[k_find] - значение плато по оси OY.
         k_find - намер первого элемента входящего в плато.
     """
-    
+
     x = x1[:int(len(x1)/2)]
     window = int(len(x) / 20)
     diff_x = np.diff(x)
@@ -173,6 +177,41 @@ def eye_ball(x1):
     return x1[k_find], k_find
 
 
+def bootstrap_est(x, interval=0.9, func=None):
+    """
+    Функция позволяет вычислить доверительный интервал для некоторого эстиматора.
+    Input:
+        x - последовательность.
+        interval - квантиль доверительного интервала.
+        func - применяемый эстиматор.
+    Output:
+        output_mn - среднее.
+        output_up - верхняя грань доверительного интервала.
+        output_dn - нижняя грань доверительного интервала.
+    """
+
+    len_x = len(x)
+    data = list(x)
+    num_b = 100
+
+    y = np.zeros((num_b, len_x))
+    gamma_est = np.zeros((num_b, len(func(x))))    
+    for i in range(num_b):
+        for j in range(len_x):
+            y[i,j] = random.choice(data)
+        gamma_est[i,:] = func(y[i,:])
+
+    len_seq = len(gamma_est[1,:])
+    output = np.zeros((3, len_seq))
+    for i in range(len_seq-1):
+        interval_e = stats.norm.interval(interval, loc=np.mean(gamma_est[:, i]), scale=gamma_est[:, i].std())
+        output[0, i] = gamma_est[:, i].mean()
+        output[1, i] = interval_e[0]
+        output[2, i] = interval_e[1]
+
+    return output
+
+
 """
 Модуль оценки стационарности последовательностей включает в себя:
     -test_tail_index
@@ -180,7 +219,7 @@ def eye_ball(x1):
 """
 
 
-def test_tail_index(x):
+def test_tail_index(x, amount=300):
     """
     Функция позволяет найти глобальный оценщик.
     """
@@ -188,7 +227,7 @@ def test_tail_index(x):
     list_tail_ind = pd.Series()
     list_step = pd.Series()
     n = len(x)
-    h = 300 / n
+    h = amount / n
     step = int(n*h)
     num_blocks = int(1 / h)
     for i in range(num_blocks):
