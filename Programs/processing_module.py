@@ -157,24 +157,37 @@ def mixed_moment(x):
     return num_gamma
 
 
-def eye_ball(x1):
+def eye_ball(x):
     """
-    Функция позволяет найти наибольшее плато в последовательности и вывести его значение.
+    Функция реализует метод eye ball.
     Input:
         x - последовательность.
     Output:
-        x1[k_find] - значение плато по оси OY.
-        k_find - намер первого элемента входящего в плато.
+        k_find - .
     """
 
-    x = x1[:int(len(x1)/2)]
-    window = int(len(x) / 20)
-    diff_x = np.diff(x)
-    sum_x = pd.Series()
-    for i in range(0, len(x)-window):
-        sum_x[i] = np.abs(np.sum(diff_x[i:i+window]))
-    k_find = np.argmin(sum_x)
-    return x1[k_find], k_find
+    w = int(len(x)/50)
+    n = len(x)
+    e = 0
+    h = 0.9
+    list_k = []
+    eye_int = 0
+    e = 0.1 * np.mean(x)
+    print(e)
+    # for i in range(int(0.15*n), n-w):
+    for k in range(2, n-w):
+        # e = 0.1 * x[i]
+        eye_int = 0
+        for i in range(w):
+            if (np.abs(x[k+i] - x[k]) < e):
+                y = 1
+            else:
+                y = 0
+            eye_int += y
+        if (eye_int/w > h):
+            list_k.append(k)
+    k_find = np.min(list_k)
+    return k_find + int(w/2)
 
 
 def bootstrap_est(x, interval=0.9, func=None):
