@@ -163,7 +163,8 @@ def eye_ball(x):
     Input:
         x - последовательность.
     Output:
-        k_find - .
+        Значение оценщика при 
+        k_find - значение порядковой статистики.
     """
 
     w = int(len(x)/50)
@@ -173,7 +174,7 @@ def eye_ball(x):
     list_k = []
     eye_int = 0
     e = 0.1 * np.mean(x)
-    print(e)
+    # print(e)
     # for i in range(int(0.15*n), n-w):
     for k in range(2, n-w):
         # e = 0.1 * x[i]
@@ -187,7 +188,8 @@ def eye_ball(x):
         if (eye_int/w > h):
             list_k.append(k)
     k_find = np.min(list_k)
-    return k_find + int(w/2)
+    out = x[k_find + int(w/2)]
+    return out, k_find + int(w/2)
 
 
 def bootstrap_est(x, interval=0.9, func=None):
@@ -243,8 +245,8 @@ def test_tail_index(x, amount=300):
     h = amount / n
     step = int(n*h)
     num_blocks = int(1 / h)
-    for i in range(num_blocks):
-        tail_data = mixed_moment(x[i*step:(i+1)*step])
+    for i in range(num_blocks-1):
+        tail_data = hill(x[i*step:(i+1)*step])
 #        list_tail_ind[i] = Tail_data[50:-50].mean()
         list_tail_ind[i], tail_num = eye_ball(tail_data)
 
