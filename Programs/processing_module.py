@@ -285,6 +285,74 @@ def gen_graph_CA(G_input: nx.Graph, num_nodes: int, num_neigh: int) -> nx.Graph:
     return G_input
 
 
+def gen_graph_ABG(G_input: nx.DiGraph, num_iterations: int, alpha: float, beta: float, \
+                  d_in: float, d_out: float) -> nx.DiGraph:
+    """
+    Функция генерации вершин графа методом альфа, бетта, гамма присоединения.
+    Используются библиотеки tqdm, networkx.
+    gamma = 1 - (alpha + beta).
+    
+    Input:
+        G_input - изначальный ориентированный граф к которому присоединяются новые вершины.
+        num_iterations - количество итераций алгоритма.
+        alpha - float вероятность.
+        beta - float вероятность. 
+        d_in - float.
+        d_out - float.
+        
+    Output:
+        Изначальный граф к которому присоеденены вершины.
+    """
+    assert ((alpha + beta) <= 1)
+
+    i_start = len(list(G_input.nodes))
+    gamma = 1 - alpha - beta
+    print(alpha, beta, gamma, G_input)
+
+    for i in tqdm(range(0, num_iterations + 1)):
+        iter_prob = random.choices([1, 2, 3], weights=[alpha, beta, gamma])[0]
+        
+        I_n1 = list(dict(G_input.in_degree()).values())
+        O_n1 = list(dict(G_input.out_degree()).values())
+        
+        N_I = list(dict(G_input.in_degree()).keys())
+        N_O = list(dict(G_input.out_degree()).keys())
+        
+        N = len(I_n1)
+        n = sum(list(dict(G_input.in_degree()).values()))
+        u = list(G_input.nodes)[-1] + 1
+
+        assert (N_I == N_O)
+        
+        if (iter_prob == 1):
+            denominator = n - 1 + d_in * N
+            local_eq = []
+            for j in range(len(I_n1)):
+                local_eq.append((I_n1[j] + d_in) / denominator)
+            w = (random.choices(N_I, weights=local_eq))[0]
+            G_input.add_edge(i, w)
+
+        if (iter_prob == 2):
+            denominator_1 = n - 1 + d_in * N
+            denominator_2 = n - 1 + d_out * N
+            local_eq = []
+            for j in range(len(I_n1)):
+                local_eq.append(((I_n1[j] + d_in) / denominator_1) * ((O_n1[j] + d_out) / denominator_2))
+            w = (random.choices(N_I, weights=local_eq))[0]
+            u = (random.choices(N_I, weights=local_eq))[0]
+            G_input.add_edge(u, w)
+        
+        if (iter_prob == 3):
+            denominator = n - 1 + d_out * N
+            local_eq = []
+            for j in range(len(O_n1)):
+                local_eq.append((O_n1[j] + d_out) / denominator)
+            w = (random.choices(N_O, weights=local_eq))[0]
+            G_input.add_edge(w, i)
+
+    return G_input
+
+
 """
 Модуль оценки стационарности последовательностей включает в себя:
     -test_tail_index
