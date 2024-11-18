@@ -159,12 +159,12 @@ def mixed_moment(x):
 
 def eye_ball(x):
     """
-    Функция реализует метод eye ball.
+    Функция реализует метод eye ball для некоторой функции.
     Input:
-        x - последовательность.
+        x - последовательность определённая некоторой функцией.
     Output:
-        Значение оценщика при 
-        k_find - значение порядковой статистики.
+        out - Значение оценщика по методу eye ball.
+        k_find + int(w/2) - значение порядковой статистики соответствующей значению оценщика.
     """
 
     w = int(len(x)/50)
@@ -225,6 +225,64 @@ def bootstrap_est(x, interval=0.9, func=None):
         output[2, i] = interval_e[1]
 
     return output
+
+
+"""
+Модуль генерации графов включает в себя:
+    -gen_graph_PA
+    -gen_graph_CA
+"""
+
+
+def gen_graph_PA(G_input: nx.Graph, num_nodes: int, num_neigh: int) -> nx.Graph:
+    """
+    Функция генерации вершин графа методом предпочтительного присоединения.
+    Используются библиотеки tqdm, networkx.
+    
+    Input:
+        G_input - изначальный неориентированный граф к которому присоединяются новые вершины.
+        num_nodes - количество присоединяемых вершин.
+        num_neigh - количество соседий, к которым присоединяется новая вершина.
+        
+    Output:
+        Изначальный неориентированный граф к которому присоеденены вершины.
+    """
+    i_start = len(list(G_input.nodes))
+    print(i_start)
+    for i in tqdm(range(i_start + 1, i_start + num_nodes)):
+        k = []
+        for i1 in range(num_neigh):
+            k.append((random.choices(list(dict(G_input.degree()).keys()), weights=list(dict(G_input.degree()).values())))[0])
+        for i1 in range(num_neigh):
+            G_input.add_edge(k[i1], i)     
+    return G_input
+
+
+def gen_graph_CA(G_input: nx.Graph, num_nodes: int, num_neigh: int) -> nx.Graph:
+    """
+    Функция генерации вершин графа методом кластерного присоединения.
+    Используются библиотеки tqdm, networkx.
+    Содержит циклы так как k.append((random.choices)) может выдавать 2 одинаковых числа. 
+    
+    Input:
+        G_input - изначальный неориентированный граф к которому присоединяются новые вершины.
+        num_nodes - количество присоединяемых вершин.
+        num_neigh - количество соседий, к которым присоединяется новая вершина.
+        
+    Output:
+        Изначальный неориентированный граф к которому присоеденены вершины.
+    """
+    i_start = len(list(G_input.nodes))
+    for i in tqdm(range(i_start + 1, i_start + num_nodes)):
+        local_calst = list(nx.clustering(G_input).values())
+        for j in range(len(local_calst)):
+            local_calst[j] += 0.001
+        k = []
+        for i1 in range(num_neigh):
+            k.append((random.choices(list(nx.clustering(G_input).keys()), weights=local_calst))[0])
+        for i1 in range(num_neigh):
+            G_input.add_edge(k[i1], i)
+    return G_input
 
 
 """
