@@ -15,7 +15,10 @@ from scipy import stats
 
 
 """
-Модуль эстиматоров включает в себя:
+
+МОДУЛЬ ЭСТИМАТОРОВ 
+
+Включает в себя:
     -Hill's estimator
     -Ratio estimator
     -Moment estimator
@@ -228,9 +231,13 @@ def bootstrap_est(x, interval=0.9, func=None):
 
 
 """
-Модуль генерации графов включает в себя:
+
+МОДУЛЬ ГЕНЕРАЦИИ ГРАФОВ 
+
+Включает в себя:
     -gen_graph_PA
     -gen_graph_CA
+    -gen_graph_ABG
 """
 
 
@@ -354,7 +361,10 @@ def gen_graph_ABG(G_input: nx.DiGraph, num_iterations: int, alpha: float, beta: 
 
 
 """
-Модуль оценки стационарности последовательностей включает в себя:
+
+МОДЕЛЬ ОЦЕНКИ СТАЦИОНАРНОСТИ ПОСЛЕДОВАТЕЛЬНОСТЕЙ
+
+Включает в себя:
     -test_tail_index
     -phillips_loretan
 """
@@ -394,7 +404,10 @@ def phillips_loretan(x1, x2):
 
 
 """
-Модуль оценки стационарности графов включает в себя:
+
+МОДУЛЬ ОЦЕНКИ СТАЦИОНАРНОСТИ ГРАФОВ
+
+Включает в себя:
     -teil_index_by_sec
     -value_index_time
 """
