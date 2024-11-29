@@ -331,3 +331,135 @@ def value_index_time(data_vt, comm_list, time):
         list_time_std.append(teil_index_by_sec(df_pr_t_1)[1])
         num_nodes.append((df_pr_t_1.size)/2)
     return list_time_mean, list_time_std, num_nodes
+
+
+"""
+
+МОДУЛЬ ГЕНЕРАЦИИ ГРАФОВ 
+
+Включает в себя:
+    -gen_graph_PA
+    -gen_graph_CA
+    -gen_graph_ABG
+"""
+
+
+def gen_graph_ABG(G_input: nx.DiGraph, num_iterations: int, alpha: float, beta: float, \
+                  d_in: float, d_out: float) -> nx.DiGraph:
+    """
+    Функция генерации вершин графа методом альфа, бетта, гамма присоединения.
+    Используются библиотеки tqdm, networkx.
+    gamma = 1 - (alpha + beta).
+    
+    Input:
+        G_input - изначальный ориентированный граф к которому присоединяются новые вершины.
+        num_iterations - количество итераций алгоритма.
+        alpha - float вероятность.
+        beta - float вероятность. 
+        d_in - float.
+        d_out - float.
+        
+    Output:
+        Изначальный граф к которому присоеденены вершины. 
+        Без self loops
+    """
+    assert ((alpha + beta) <= 1)
+
+    i_start = len(list(G_input.nodes))
+    gamma = 1 - alpha - beta
+    print(alpha, beta, gamma, G_input)
+
+    for i in tqdm(range(0, num_iterations + 1)):
+        iter_prob = random.choices([1, 2, 3], weights=[alpha, beta, gamma])[0]
+        
+        I_n1 = list(dict(G_input.in_degree()).values())
+        O_n1 = list(dict(G_input.out_degree()).values())
+        
+        N_I = list(dict(G_input.in_degree()).keys())
+        N_O = list(dict(G_input.out_degree()).keys())
+        
+        N = len(I_n1)
+        n = sum(list(dict(G_input.in_degree()).values()))
+        u = list(G_input.nodes)[-1] + 1
+
+        assert (N_I == N_O)
+        
+        if (iter_prob == 1):
+            denominator = n - 1 + d_in * N
+            local_eq = []
+            for j in range(len(I_n1)):
+                local_eq.append((I_n1[j] + d_in) / denominator)
+            w = (random.choices(N_I, weights=local_eq))[0]
+            G_input.add_edge(i, w)
+
+        if (iter_prob == 2):
+            denominator_1 = n - 1 + d_in * N
+            denominator_2 = n - 1 + d_out * N
+            local_eq = []
+            for j in range(len(I_n1)):
+                local_eq.append(((I_n1[j] + d_in) / denominator_1) * ((O_n1[j] + d_out) / denominator_2))
+            w = (random.choices(N_I, weights=local_eq))[0]
+            u = (random.choices(N_I, weights=local_eq))[0]
+            if (u != w):
+                G_input.add_edge(u, w)
+        
+        if (iter_prob == 3):
+            denominator = n - 1 + d_out * N
+            local_eq = []
+            for j in range(len(O_n1)):
+                local_eq.append((O_n1[j] + d_out) / denominator)
+            w = (random.choices(N_O, weights=local_eq))[0]
+            G_input.add_edge(w, i)
+
+    return G_input
+
+
+def gen_graph_CA(G_input: nx.Graph, num_nodes: int, num_neigh: int) -> nx.Graph:
+    """
+    Функция генерации вершин графа методом кластерного присоединения.
+    Используются библиотеки tqdm, networkx.
+    Содержит циклы так как k.append((random.choices)) может выдавать 2 одинаковых числа. 
+    
+    Input:
+        G_input - изначальный неориентированный граф к которому присоединяются новые вершины.
+        num_nodes - количество присоединяемых вершин.
+        num_neigh - количество соседий, к которым присоединяется новая вершина.
+        
+    Output:
+        Изначальный неориентированный граф к которому присоеденены вершины.
+    """
+    i_start = len(list(G_input.nodes))
+    for i in tqdm(range(i_start + 1, i_start + num_nodes)):
+        local_calst = list(nx.clustering(G_input).values())
+        for j in range(len(local_calst)):
+            local_calst[j] += 0.001
+        k = []
+        for i1 in range(num_neigh):
+            k.append((random.choices(list(nx.clustering(G_input).keys()), weights=local_calst))[0])
+        for i1 in range(num_neigh):
+            G_input.add_edge(k[i1], i)
+    return G_input
+
+
+def gen_graph_PA(G_input: nx.Graph, num_nodes: int, num_neigh: int) -> nx.Graph:
+    """
+    Функция генерации вершин графа методом предпочтительного присоединения.
+    Используются библиотеки tqdm, networkx.
+    
+    Input:
+        G_input - изначальный неориентированный граф к которому присоединяются новые вершины.
+        num_nodes - количество присоединяемых вершин.
+        num_neigh - количество соседий, к которым присоединяется новая вершина.
+        
+    Output:
+        Изначальный неориентированный граф к которому присоеденены вершины.
+    """
+    i_start = len(list(G_input.nodes))
+    print(i_start)
+    for i in tqdm(range(i_start + 1, i_start + num_nodes)):
+        k = []
+        for i1 in range(num_neigh):
+            k.append((random.choices(list(dict(G_input.degree()).keys()), weights=list(dict(G_input.degree()).values())))[0])
+        for i1 in range(num_neigh):
+            G_input.add_edge(k[i1], i)     
+    return G_input
