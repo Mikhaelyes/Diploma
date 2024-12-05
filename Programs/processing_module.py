@@ -12,6 +12,7 @@ import networkx as nx
 import pandas as pd
 import numpy as np
 from scipy import stats
+from tqdm import tqdm
 
 
 """
@@ -262,12 +263,23 @@ def test_tail_index(x, amount=300):
     return list_step, global_est
 
 
-def phillips_loretan(x1, x2):
+def phillips_loretan_mm(x1, x2):
     """
-    Функция теста phillips_loretan для двух последовательностей
+    Функция теста phillips_loretan для двух последовательностей, оценка по mixed moment.
     """
     tail_ind_1, tail_num_1 = eye_ball(mixed_moment(x1))
     tail_ind_2, tail_num_2 = eye_ball(mixed_moment(x2))
+    s = (tail_num_1*(tail_ind_2)**2 * (tail_ind_1/tail_ind_2 - 1)**2)/ \
+    (tail_ind_1**2 + (tail_num_1/tail_num_2)*tail_ind_2**2)
+    return s
+
+
+def phillips_loretan_hill(x1, x2):
+    """
+    Функция теста phillips_loretan для двух последовательностей, оценка по hill.
+    """
+    tail_ind_1, tail_num_1 = eye_ball(hill(x1))
+    tail_ind_2, tail_num_2 = eye_ball(hill(x2))
     s = (tail_num_1*(tail_ind_2)**2 * (tail_ind_1/tail_ind_2 - 1)**2)/ \
     (tail_ind_1**2 + (tail_num_1/tail_num_2)*tail_ind_2**2)
     return s
@@ -460,6 +472,33 @@ def gen_graph_PA(G_input: nx.Graph, num_nodes: int, num_neigh: int) -> nx.Graph:
         k = []
         for i1 in range(num_neigh):
             k.append((random.choices(list(dict(G_input.degree()).keys()), weights=list(dict(G_input.degree()).values())))[0])
+        for i1 in range(num_neigh):
+            G_input.add_edge(k[i1], i)     
+    return G_input
+
+
+def gen_graph_PA_2(G_input: nx.Graph, num_nodes: int, num_neigh: int) -> nx.Graph:
+    """
+    Функция генерации вершин графа методом предпочтительного присоединения.
+    Используются библиотеки tqdm, networkx.
+    
+    Input:
+        G_input - изначальный неориентированный граф к которому присоединяются новые вершины.
+        num_nodes - количество присоединяемых вершин.
+        num_neigh - количество соседий, к которым присоединяется новая вершина.
+        
+    Output:
+        Изначальный неориентированный граф к которому присоеденены вершины.
+    """
+    i_start = len(list(G_input.nodes))
+    print(i_start)
+    for i in tqdm(range(i_start + 1, i_start + num_nodes)):
+        k = []
+        prob = list(dict(G_input.degree()).values())
+        for j in range(len(prob)):
+            prob[j] = prob[j] ** 1.2
+        for i1 in range(num_neigh):
+            k.append((random.choices(list(dict(G_input.degree()).keys()), weights=prob))[0])
         for i1 in range(num_neigh):
             G_input.add_edge(k[i1], i)     
     return G_input
